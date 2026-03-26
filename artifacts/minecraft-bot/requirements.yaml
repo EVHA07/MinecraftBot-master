@@ -1,0 +1,18 @@
+packages:
+  "framer-motion": "Smooth entry animations and interactive transitions for the dashboard"
+  "react-hook-form": "Robust form state management for the connection dialog"
+  "@hookform/resolvers": "Zod integration for form validation"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility for merging tailwind classes safely"
+  "date-fns": "For formatting chat log timestamps"
+  "sonner": "Premium looking toast notifications for bot events and errors"
+
+images:
+  - path: "artifacts/minecraft-bot/public/images/bg-glow.png"
+    description: "Dark futuristic cyberpunk grid background with subtle cyan and purple glowing nodes, deep space minimal atmosphere"
+    aspect_ratio: "16:9"
+
+notes:
+  - Bot API REST endpoints handle connection lifecycle and commands
+  - WebSocket at /ws provides real-time state and chat updates
+  - The dashboard polls status but relies heavily on WS for instant feedback

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/minecraft-bot/"
+title = "Minecraft Bot"
+version = "1.0.0"
+id = "artifacts/minecraft-bot"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/minecraft-bot/" ]
+localPort = 23418
+
+[services.development]
+run = "pnpm --filter @workspace/minecraft-bot run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/minecraft-bot", "run", "build" ]
+publicDir = "artifacts/minecraft-bot/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23418"
+BASE_PATH = "/minecraft-bot/"
