@@ -101,7 +101,7 @@ const apiProxyTarget =
   `http://127.0.0.1:${apiPort}`;
 
 console.log(`[dev] API server    http://127.0.0.1:${apiPort}`);
-console.log(`[dev] Web dashboard http://127.0.0.1:${webPort}${webBasePath.slice(1)}`);
+console.log(`[dev] Web dashboard http://127.0.0.1:${webPort}${webBasePath}`);
 
 const services = [
   {
