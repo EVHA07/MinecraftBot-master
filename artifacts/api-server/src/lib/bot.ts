@@ -1,5 +1,11 @@
 import mineflayer, { type Bot } from "mineflayer";
-import { writeFileSync, readFileSync, unlinkSync, existsSync, mkdirSync } from "fs";
+import {
+  writeFileSync,
+  readFileSync,
+  unlinkSync,
+  existsSync,
+  mkdirSync,
+} from "fs";
 import { join } from "path";
 import { logger } from "./logger";
 
@@ -40,8 +46,8 @@ const MAX_LOGS = 200;
 const logs: LogEntry[] = [];
 const listeners: Set<BotEventListener> = new Set();
 
-// Persist session in the workspace so it survives container restarts
-// process.cwd() is artifacts/api-server when the server runs
+// Persist session in the workspace so it survives container restarts.
+// process.cwd() is artifacts/api-server when the server runs.
 const SESSION_FILE = join(process.cwd(), ".data", "bot-session.json");
 
 function saveSession(options: ConnectOptions): void {
@@ -61,6 +67,13 @@ function clearSession(): void {
   }
 }
 
+function clearActiveConnection(): void {
+  bot = null;
+  currentHost = null;
+  currentPort = null;
+  clearSession();
+}
+
 export function loadSession(): ConnectOptions | null {
   try {
     if (!existsSync(SESSION_FILE)) return null;
@@ -78,6 +91,7 @@ function addLog(type: string, message: string): LogEntry {
     type,
     message,
   };
+
   logs.push(entry);
   if (logs.length > MAX_LOGS) logs.shift();
   broadcast("log", entry);
@@ -113,6 +127,7 @@ export function getStatus(): BotState {
       version: null,
     };
   }
+
   const pos = bot.entity?.position;
   return {
     connected: true,
@@ -128,7 +143,8 @@ export function getStatus(): BotState {
           z: Math.round(pos.z * 100) / 100,
         }
       : null,
-    gameMode: bot.game?.gameMode !== undefined ? String(bot.game.gameMode) : null,
+    gameMode:
+      bot.game?.gameMode !== undefined ? String(bot.game.gameMode) : null,
     version: bot.version ?? null,
   };
 }
@@ -146,7 +162,10 @@ export function connectBot(options: ConnectOptions): void {
   currentPort = options.port;
 
   saveSession(options);
-  addLog("system", `Connecting to ${options.host}:${options.port} as ${options.username}…`);
+  addLog(
+    "system",
+    `Connecting to ${options.host}:${options.port} as ${options.username}...`,
+  );
 
   const botOptions: mineflayer.BotOptions = {
     host: options.host,
@@ -160,76 +179,79 @@ export function connectBot(options: ConnectOptions): void {
   }
 
   bot = mineflayer.createBot(botOptions);
+  const activeBot = bot;
 
-  bot.once("login", () => {
-    addLog("system", `Logged in as ${bot?.username}`);
+  activeBot.once("login", () => {
+    addLog("system", `Logged in as ${activeBot.username}`);
     broadcast("connected", getStatus());
     broadcast("status", getStatus());
   });
 
-  bot.on("spawn", () => {
+  activeBot.on("spawn", () => {
     addLog("system", "Bot spawned in world");
     broadcast("status", getStatus());
   });
 
-  bot.on("chat", (username, message) => {
-    if (username === bot?.username) return;
+  activeBot.on("chat", (username, message) => {
+    if (username === activeBot.username) return;
     addLog("chat", `<${username}> ${message}`);
   });
 
-  bot.on("whisper", (username, message) => {
+  activeBot.on("whisper", (username, message) => {
     addLog("chat", `[whisper] <${username}> ${message}`);
   });
 
-  bot.on("playerJoined", (player) => {
+  activeBot.on("playerJoined", (player) => {
     addLog("join", `${player.username} joined the game`);
   });
 
-  bot.on("playerLeft", (player) => {
+  activeBot.on("playerLeft", (player) => {
     addLog("leave", `${player.username} left the game`);
   });
 
-  bot.on("death", () => {
-    addLog("death", `${bot?.username} died`);
+  activeBot.on("death", () => {
+    addLog("death", `${activeBot.username} died`);
     broadcast("status", getStatus());
   });
 
-  bot.on("health", () => {
+  activeBot.on("health", () => {
     broadcast("status", getStatus());
   });
 
-  bot.on("move", () => {
+  activeBot.on("move", () => {
     broadcast("status", getStatus());
   });
 
-  bot.on("kicked", (reason: string) => {
+  activeBot.on("kicked", (reason: string) => {
+    if (bot !== activeBot) return;
+
     let msg = "Kicked from server";
     try {
-      const parsed = JSON.parse(reason) as { text?: string; translate?: string };
+      const parsed = JSON.parse(reason) as {
+        text?: string;
+        translate?: string;
+      };
       msg = parsed.text ?? parsed.translate ?? reason;
     } catch {
       msg = reason;
     }
+
     addLog("error", `Kicked: ${msg}`);
-    bot = null;
-    currentHost = null;
-    currentPort = null;
-    clearSession();
+    clearActiveConnection();
     broadcast("disconnected", { reason: msg });
     broadcast("status", getStatus());
   });
 
-  bot.on("error", (err: Error) => {
+  activeBot.on("error", (err: Error) => {
     addLog("error", `Error: ${err.message}`);
     logger.error({ err }, "Mineflayer bot error");
   });
 
-  bot.on("end", (reason: string) => {
+  activeBot.on("end", (reason: string) => {
+    if (bot !== activeBot) return;
+
     addLog("system", `Disconnected: ${reason ?? "unknown"}`);
-    bot = null;
-    currentHost = null;
-    currentPort = null;
-    clearSession();
+    clearActiveConnection();
     broadcast("disconnected", { reason });
     broadcast("status", getStatus());
   });
@@ -237,22 +259,22 @@ export function connectBot(options: ConnectOptions): void {
 
 export function disconnectBot(): void {
   if (!bot) {
-    throw new Error("Bot is not connected");
+    return;
   }
-  addLog("system", "Disconnecting…");
-  bot.quit("Disconnecting");
-  bot = null;
-  currentHost = null;
-  currentPort = null;
-  clearSession();
+
+  const activeBot = bot;
+  addLog("system", "Disconnecting...");
+  clearActiveConnection();
   broadcast("disconnected", {});
   broadcast("status", getStatus());
+  activeBot.quit("Disconnecting");
 }
 
 export function sendChat(message: string): void {
   if (!bot) {
     throw new Error("Bot is not connected");
   }
+
   bot.chat(message);
   addLog("chat", `<${bot.username}> ${message}`);
 }

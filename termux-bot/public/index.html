@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MinecraftBOT Home</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #07111f;
+        --bg-deep: #030813;
+        --surface: rgba(9, 18, 33, 0.94);
+        --surface-2: rgba(17, 31, 52, 0.78);
+        --surface-card: rgba(11, 20, 37, 0.94);
+        --surface-line: rgba(109, 231, 255, 0.14);
+        --text: #e9f6ff;
+        --text-soft: rgba(176, 201, 222, 0.72);
+        --text-invert: #e9f6ff;
+        --accent: #72e7ff;
+        --danger: #ef6d7e;
+        --shadow: 0 22px 48px rgba(0, 0, 0, 0.34);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        color: var(--text-invert);
+        background:
+          radial-gradient(circle at top left, rgba(114, 231, 255, 0.12), transparent 28%),
+          radial-gradient(circle at top right, rgba(74, 222, 128, 0.08), transparent 22%),
+          linear-gradient(180deg, #0b1830 0%, var(--bg) 42%, var(--bg-deep) 100%);
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        background: none;
+        cursor: pointer;
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid rgba(109, 231, 255, 0.12);
+        border-radius: 18px;
+        background: rgba(13, 24, 42, 0.96);
+        color: var(--text);
+        outline: none;
+        padding: 13px 15px;
+      }
+
+      .shell {
+        width: min(760px, calc(100vw - 16px));
+        margin: 0 auto;
+        padding:
+          max(env(safe-area-inset-top, 0px), 18px)
+          0
+          calc(28px + env(safe-area-inset-bottom, 0px));
+        display: grid;
+        gap: 14px;
+      }
+
+      .appbar {
+        position: sticky;
+        top: max(env(safe-area-inset-top, 0px), 12px);
+        z-index: 20;
+      }
+
+      .appbar-pill {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        min-height: 58px;
+        padding: 10px 14px 10px 18px;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--surface-line);
+        box-shadow: var(--shadow);
+      }
+
+      .appbar-title {
+        display: grid;
+        gap: 2px;
+      }
+
+      .eyebrow {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--text-soft);
+      }
+
+      .headline {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-invert);
+      }
+
+      .menu-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+      }
+
+      .menu-icon {
+        width: 18px;
+        display: grid;
+        gap: 4px;
+      }
+
+      .menu-icon span {
+        display: block;
+        height: 2.5px;
+        border-radius: 999px;
+        background: var(--text-invert);
+      }
+
+      .menu-wrap {
+        position: relative;
+      }
+
+      .menu-panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        width: 170px;
+        border-radius: 24px;
+        padding: 12px;
+        background: var(--surface);
+        border: 1px solid var(--surface-line);
+        box-shadow: var(--shadow);
+        display: none;
+      }
+
+      .menu-panel.open {
+        display: grid;
+        gap: 6px;
+      }
+
+      .menu-action {
+        display: block;
+        width: 100%;
+        border-radius: 16px;
+        padding: 10px 12px;
+        text-align: left;
+        color: var(--text-invert);
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .menu-action:hover,
+      .menu-action:active {
+        background: rgba(114, 231, 255, 0.08);
+      }
+
+      .hero {
+        min-height: 160px;
+        display: grid;
+        align-content: end;
+        padding: 8px 4px 0;
+      }
+
+      .hero-title {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .hero-copy {
+        margin: 8px 0 0;
+        max-width: 320px;
+        color: var(--text-soft);
+        font-size: 14px;
+      }
+
+      .banner {
+        min-height: 20px;
+        padding: 0 4px;
+        color: var(--text-soft);
+        font-size: 13px;
+      }
+
+      .banner.error {
+        color: #ffd7de;
+      }
+
+      .status-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .status-chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(10, 19, 34, 0.92);
+        border: 1px solid var(--surface-line);
+        color: var(--text-invert);
+        font-size: 12px;
+      }
+
+      .panel {
+        border-radius: 28px;
+        padding: 18px;
+        background: var(--surface-card);
+        border: 1px solid var(--surface-line);
+        color: var(--text);
+        box-shadow: var(--shadow);
+      }
+
+      .panel h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .panel-head-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .count {
+        color: var(--text-soft);
+        font-size: 13px;
+      }
+
+      .composer[hidden] {
+        display: none;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+
+      .field label {
+        color: var(--text-soft);
+        font-size: 12px;
+      }
+
+      .field.full {
+        grid-column: 1 / -1;
+      }
+
+      .composer-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .pill-action {
+        border-radius: 999px;
+        padding: 12px 16px;
+        font-weight: 700;
+      }
+
+      .pill-action.primary {
+        background: linear-gradient(135deg, #0e2a48 0%, #123d52 100%);
+        color: var(--text-invert);
+      }
+
+      .pill-action.secondary {
+        background: rgba(114, 231, 255, 0.08);
+        color: var(--text-invert);
+      }
+
+      .tiny-action {
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: rgba(114, 231, 255, 0.08);
+        color: var(--text-invert);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .tiny-action.danger {
+        background: rgba(239, 109, 126, 0.14);
+        color: #c54158;
+      }
+
+      .cards {
+        display: grid;
+        gap: 12px;
+      }
+
+      .session-card {
+        display: grid;
+        gap: 10px;
+        padding: 16px;
+        border-radius: 24px;
+        background: var(--surface-2);
+        border: 1px solid rgba(114, 231, 255, 0.08);
+      }
+
+      .session-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .session-head strong {
+        font-size: 17px;
+      }
+
+      .badge {
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .badge.on {
+        background: rgba(74, 222, 128, 0.16);
+        color: #79efb0;
+      }
+
+      .badge.off {
+        background: rgba(242, 197, 109, 0.12);
+        color: #f3cb78;
+      }
+
+      .meta {
+        display: grid;
+        gap: 4px;
+        color: var(--text-soft);
+        font-size: 13px;
+      }
+
+      .inline-actions {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: 1fr auto auto;
+      }
+
+      .inline-actions button {
+        border-radius: 16px;
+        padding: 12px 14px;
+        color: var(--text-invert);
+        background: rgba(114, 231, 255, 0.08);
+      }
+
+      .inline-actions .danger {
+        color: #fff;
+        background: var(--danger);
+      }
+
+      .logs {
+        display: grid;
+        gap: 8px;
+      }
+
+      .log {
+        border-radius: 18px;
+        padding: 12px 14px;
+        background: var(--surface-2);
+        border: 1px solid rgba(114, 231, 255, 0.08);
+      }
+
+      .log time {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text-soft);
+        font-size: 11px;
+      }
+
+      .empty {
+        border-radius: 22px;
+        padding: 18px;
+        background: var(--surface-2);
+        color: var(--text-soft);
+        text-align: center;
+      }
+
+      @media (max-width: 640px) {
+        .form-grid,
+        .inline-actions {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="appbar">
+        <div class="appbar-pill">
+          <div class="appbar-title">
+            <span class="eyebrow">HOME</span>
+            <span class="headline">MinecraftBOT</span>
+          </div>
+
+          <div class="menu-wrap">
+            <button type="button" class="menu-button" id="menu-button" aria-label="Open menu">
+              <span class="menu-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+            </button>
+
+            <div class="menu-panel" id="menu-panel">
+              <button type="button" class="menu-action" id="menu-refresh-btn">Refresh</button>
+              <button type="button" class="menu-action" id="menu-close-btn">Close Session</button>
+              <button type="button" class="menu-action" id="menu-new-btn">New Session</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="hero">
+        <h1 class="hero-title">Home</h1>
+        <p class="hero-copy">Kelola banyak bot dan banyak server langsung dari satu layar.</p>
+      </section>
+
+      <div class="banner" id="banner"></div>
+
+      <section class="status-row">
+        <div class="status-chip" id="api-chip">API: starting...</div>
+        <div class="status-chip" id="ws-chip">WS: waiting...</div>
+      </section>
+
+      <section class="panel composer" id="composer-panel" hidden>
+        <div class="panel-head">
+          <h2>New Session</h2>
+          <span class="count">Isi data bot lalu connect.</span>
+        </div>
+
+        <form id="connect-form">
+          <div class="form-grid">
+            <div class="field">
+              <label for="botId">Bot ID</label>
+              <input id="botId" name="botId" placeholder="bot-1" />
+            </div>
+
+            <div class="field">
+              <label for="username">Username</label>
+              <input id="username" name="username" placeholder="BotSatu" />
+            </div>
+
+            <div class="field">
+              <label for="host">Host</label>
+              <input id="host" name="host" placeholder="play.server.com" />
+            </div>
+
+            <div class="field">
+              <label for="port">Port</label>
+              <input id="port" name="port" placeholder="25565" value="25565" />
+            </div>
+
+            <div class="field full">
+              <label for="version">Version</label>
+              <input id="version" name="version" placeholder="optional, contoh 1.20.4" />
+            </div>
+          </div>
+
+          <div class="composer-actions">
+            <button type="submit" class="pill-action primary">Connect</button>
+            <button type="button" class="pill-action secondary" id="reset-session-btn">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Connected Sessions</h2>
+          <div class="panel-head-actions">
+            <span class="count" id="connected-count">0 active</span>
+            <button type="button" class="tiny-action danger" id="disconnect-all-btn">Disconnect All</button>
+          </div>
+        </div>
+        <div class="cards" id="connected-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Saved Sessions</h2>
+          <span class="count" id="saved-count">0 saved</span>
+        </div>
+        <div class="cards" id="saved-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Recent Logs</h2>
+          <span class="count" id="logs-count">0 events</span>
+        </div>
+        <div class="logs" id="logs"></div>
+      </section>
+    </main>
+
+    <script>
+      const state = {
+        savedBots: [],
+        connectedBots: [],
+        logs: [],
+        runtimeSnapshot: null,
+        ws: null,
+        apiReady: false,
+        bootstrapTimer: null,
+        wsReconnectTimer: null,
+      };
+
+      const runtimeBaseUrl = resolveRuntimeBaseUrl();
+      const runtimeWsBaseUrl = runtimeBaseUrl.replace(/^http/i, "ws");
+
+      const banner = document.getElementById("banner");
+      const apiChip = document.getElementById("api-chip");
+      const wsChip = document.getElementById("ws-chip");
+      const composerPanel = document.getElementById("composer-panel");
+      const connectForm = document.getElementById("connect-form");
+      const resetSessionBtn = document.getElementById("reset-session-btn");
+      const connectedList = document.getElementById("connected-list");
+      const savedList = document.getElementById("saved-list");
+      const logsList = document.getElementById("logs");
+      const connectedCount = document.getElementById("connected-count");
+      const savedCount = document.getElementById("saved-count");
+      const logsCount = document.getElementById("logs-count");
+      const botIdInput = document.getElementById("botId");
+      const usernameInput = document.getElementById("username");
+      const hostInput = document.getElementById("host");
+      const portInput = document.getElementById("port");
+      const versionInput = document.getElementById("version");
+      const menuButton = document.getElementById("menu-button");
+      const menuPanel = document.getElementById("menu-panel");
+      const menuRefreshBtn = document.getElementById("menu-refresh-btn");
+      const menuCloseBtn = document.getElementById("menu-close-btn");
+      const menuNewBtn = document.getElementById("menu-new-btn");
+      const disconnectAllBtn = document.getElementById("disconnect-all-btn");
+
+      function resolveRuntimeBaseUrl() {
+        if (location.protocol !== "file:") {
+          return location.origin.replace(/\/+$/, "");
+        }
+
+        const params = new URLSearchParams(location.search);
+        const queryApiBase = params.get("api");
+        const injectedApiBase = window.MINECRAFTBOT_API_BASE;
+        return String(queryApiBase || injectedApiBase || "http://127.0.0.1:38080").replace(/\/+$/, "");
+      }
+
+      function apiUrl(path) {
+        return `${runtimeBaseUrl}${path}`;
+      }
+
+      function setBanner(message, isError = false) {
+        banner.textContent = message || "";
+        banner.className = isError ? "banner error" : "banner";
+      }
+
+      function humanizeError(err) {
+        const message = String(err?.message || "Unknown error");
+        if (/Failed to fetch|NetworkError/i.test(message)) {
+          return "Menunggu runtime lokal aktif...";
+        }
+        return message;
+      }
+
+      function readNativeRuntimeState() {
+        try {
+          if (
+            typeof window.MinecraftBotNative === "undefined" ||
+            typeof window.MinecraftBotNative.getRuntimeStateJson !== "function"
+          ) {
+            return null;
+          }
+
+          const payload = window.MinecraftBotNative.getRuntimeStateJson();
+          if (!payload) return null;
+          return JSON.parse(payload);
+        } catch (err) {
+          console.warn("Failed to read native runtime state", err);
+          return null;
+        }
+      }
+
+      function mapRuntimeSnapshotToLogs(snapshot) {
+        if (!snapshot || !Array.isArray(snapshot.recentLogs)) {
+          return [];
+        }
+
+        const baseTime = Number(snapshot.updatedAt || Date.now());
+        return snapshot.recentLogs.map((message, index) => ({
+          timestamp: new Date(baseTime - (snapshot.recentLogs.length - index) * 1000).toISOString(),
+          botId: "runtime",
+          type: snapshot.phase === "ERROR" ? "error" : "system",
+          message,
+        }));
+      }
+
+      function readNativeBootstrapLogs() {
+        try {
+          if (
+            typeof window.MinecraftBotNative === "undefined" ||
+            typeof window.MinecraftBotNative.getBootstrapLogText !== "function"
+          ) {
+            return [];
+          }
+
+          const content = String(window.MinecraftBotNative.getBootstrapLogText() || "").trim();
+          if (!content) return [];
+
+          return content
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line, index) => {
+              const match = line.match(/^\[([^\]]+)\]\s+(.*)$/);
+              return {
+                timestamp: match?.[1] || new Date(Date.now() + index).toISOString(),
+                botId: "bootstrap",
+                type: /failed|exception|rejection|error/i.test(line) ? "error" : "system",
+                message: match?.[2] || line,
+              };
+            });
+        } catch (err) {
+          console.warn("Failed to read native bootstrap logs", err);
+          return [];
+        }
+      }
+
+      function applyRuntimeSnapshot(snapshot) {
+        state.runtimeSnapshot = snapshot;
+        if (!snapshot) return;
+
+        apiChip.textContent = snapshot.serverReady ? "API: ok" : `API: ${String(snapshot.phase || "starting").toLowerCase()}`;
+        wsChip.textContent = snapshot.serverReady ? "WS: waiting..." : "WS: waiting...";
+
+        if (!state.apiReady) {
+          const runtimeLogs = mapRuntimeSnapshotToLogs(snapshot);
+          const bootstrapLogs = readNativeBootstrapLogs();
+          state.logs = [...runtimeLogs, ...bootstrapLogs].slice(-120);
+          renderLogs();
+        }
+
+        if (snapshot.message) {
+          setBanner(snapshot.message, snapshot.phase === "ERROR");
+        }
+      }
+
+      function setMenuOpen(open) {
+        menuPanel.classList.toggle("open", open);
+      }
+
+      async function request(path, options = {}) {
+        const response = await fetch(apiUrl(path), {
+          headers: {
+            "Content-Type": "application/json",
+            ...(options.headers || {}),
+          },
+          ...options,
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.error || `HTTP ${response.status}`);
+        }
+
+        return payload;
+      }
+
+      function generateNextBotId() {
+        const usedIds = new Set([
+          ...state.connectedBots.map((item) => item.botId),
+          ...state.savedBots.map((item) => item.botId),
+        ]);
+
+        let index = 1;
+        while (usedIds.has(`bot-${index}`)) {
+          index += 1;
+        }
+        return `bot-${index}`;
+      }
+
+      function resetComposer() {
+        connectForm.reset();
+        botIdInput.value = generateNextBotId();
+        portInput.value = "25565";
+        versionInput.value = "";
+      }
+
+      function setComposerVisible(visible) {
+        composerPanel.hidden = !visible;
+        if (visible) {
+          if (!botIdInput.value.trim()) {
+            botIdInput.value = generateNextBotId();
+          }
+          usernameInput.focus();
+        }
+      }
+
+      function renderConnectedBots() {
+        connectedCount.textContent = `${state.connectedBots.length} active`;
+        disconnectAllBtn.hidden = state.connectedBots.length === 0;
+        const items = [...state.connectedBots].sort((a, b) => a.botId.localeCompare(b.botId));
+
+        if (items.length === 0) {
+          connectedList.innerHTML = '<div class="empty">Belum ada session yang aktif.</div>';
+          return;
+        }
+
+        connectedList.innerHTML = items.map((bot) => `
+          <div class="session-card">
+            <div class="session-head">
+              <strong>${bot.botId}</strong>
+              <span class="badge on">ONLINE</span>
+            </div>
+            <div class="meta">
+              <div>${bot.username || "-"}</div>
+              <div>${bot.host || "-"}:${bot.port || "-"}</div>
+              <div>HP ${bot.health ?? "-"} | Food ${bot.food ?? "-"}</div>
+              <div>Pos ${bot.position ? `${bot.position.x}, ${bot.position.y}, ${bot.position.z}` : "-"}</div>
+            </div>
+            <div class="inline-actions">
+              <input placeholder="message untuk ${bot.botId}" data-chat-input="${bot.botId}" />
+              <button type="button" data-send-chat="${bot.botId}">Send</button>
+              <button type="button" class="danger" data-disconnect="${bot.botId}">Disconnect</button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      function renderSavedBots() {
+        savedCount.textContent = `${state.savedBots.length} saved`;
+        const items = [...state.savedBots].sort((a, b) => a.botId.localeCompare(b.botId));
+
+        if (items.length === 0) {
+          savedList.innerHTML = '<div class="empty">Belum ada session tersimpan.</div>';
+          return;
+        }
+
+        savedList.innerHTML = items.map((bot) => `
+          <div class="session-card">
+            <div class="session-head">
+              <strong>${bot.botId}</strong>
+              <span class="badge ${bot.connected ? "on" : "off"}">${bot.connected ? "ONLINE" : "SAVED"}</span>
+            </div>
+            <div class="meta">
+              <div>${bot.username || "-"}</div>
+              <div>${bot.host || "-"}:${bot.port || "-"}</div>
+              <div>Version ${bot.version || "auto"}</div>
+            </div>
+            <div class="inline-actions">
+              <button type="button" data-reconnect="${bot.botId}">Connect Again</button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      function renderLogs() {
+        logsCount.textContent = `${state.logs.length} events`;
+        const items = [...state.logs].slice().reverse();
+
+        if (items.length === 0) {
+          logsList.innerHTML = '<div class="empty">Belum ada log.</div>';
+          return;
+        }
+
+        logsList.innerHTML = items.map((entry) => `
+          <div class="log">
+            <time>${new Date(entry.timestamp).toLocaleString()} | ${entry.botId} | ${entry.type}</time>
+            <div>${entry.message}</div>
+          </div>
+        `).join("");
+      }
+
+      function bindDynamicActions() {
+        document.querySelectorAll("[data-send-chat]").forEach((button) => {
+          button.onclick = async () => {
+            const botId = button.dataset.sendChat;
+            const input = document.querySelector(`[data-chat-input="${botId}"]`);
+            const message = input.value.trim();
+            if (!message) return;
+
+            try {
+              await request("/api/bot/chat", {
+                method: "POST",
+                body: JSON.stringify({ botId, message }),
+              });
+              input.value = "";
+              setBanner(`Pesan terkirim dari ${botId}`);
+            } catch (err) {
+              setBanner(humanizeError(err), true);
+            }
+          };
+        });
+
+        document.querySelectorAll("[data-disconnect]").forEach((button) => {
+          button.onclick = async () => {
+            const botId = button.dataset.disconnect;
+            try {
+              await request("/api/bot/disconnect", {
+                method: "POST",
+                body: JSON.stringify({ botId }),
+              });
+              setBanner(`Disconnect request dikirim untuk ${botId}`);
+              await refreshAll({ silent: true });
+            } catch (err) {
+              setBanner(humanizeError(err), true);
+            }
+          };
+        });
+
+        document.querySelectorAll("[data-reconnect]").forEach((button) => {
+          button.onclick = async () => {
+            const botId = button.dataset.reconnect;
+            const bot = state.savedBots.find((item) => item.botId === botId);
+            if (!bot) return;
+
+            try {
+              await request("/api/bot/connect", {
+                method: "POST",
+                body: JSON.stringify({
+                  botId: bot.botId,
+                  host: bot.host,
+                  port: bot.port,
+                  username: bot.username,
+                  version: bot.version,
+                }),
+              });
+              setBanner(`Connect request dikirim untuk ${botId}`);
+              await refreshAll({ silent: true });
+            } catch (err) {
+              setBanner(humanizeError(err), true);
+            }
+          };
+        });
+      }
+
+      function renderAll() {
+        renderConnectedBots();
+        renderSavedBots();
+        renderLogs();
+        bindDynamicActions();
+      }
+
+      async function refreshAll({ silent = false } = {}) {
+        try {
+          const [health, statuses, savedBots, logs] = await Promise.all([
+            request("/api/healthz"),
+            request("/api/bots/status"),
+            request("/api/bots/saved"),
+            request("/api/bots/logs?limit=120"),
+          ]);
+
+          state.apiReady = true;
+          state.runtimeSnapshot = null;
+          state.connectedBots = statuses;
+          state.savedBots = savedBots;
+          state.logs = logs;
+          apiChip.textContent = `API: ${health.status}`;
+          renderAll();
+          return true;
+        } catch (err) {
+          state.apiReady = false;
+          apiChip.textContent = "API: starting...";
+          wsChip.textContent = "WS: waiting...";
+          applyRuntimeSnapshot(readNativeRuntimeState());
+          if (!silent) {
+            if (!state.runtimeSnapshot?.message) {
+              setBanner(humanizeError(err));
+            }
+          }
+          return false;
+        }
+      }
+
+      function scheduleBootstrap() {
+        if (state.bootstrapTimer != null) return;
+        state.bootstrapTimer = setTimeout(async () => {
+          state.bootstrapTimer = null;
+          await bootstrapRuntime();
+        }, 1500);
+      }
+
+      function scheduleWebSocketReconnect() {
+        if (state.wsReconnectTimer != null) return;
+        state.wsReconnectTimer = setTimeout(async () => {
+          state.wsReconnectTimer = null;
+          const ready = await refreshAll({ silent: true });
+          if (ready) {
+            connectWebSocket();
+          } else {
+            scheduleBootstrap();
+          }
+        }, 2500);
+      }
+
+      function connectWebSocket() {
+        if (!state.apiReady) {
+          scheduleBootstrap();
+          return;
+        }
+
+        if (
+          state.ws &&
+          (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING)
+        ) {
+          return;
+        }
+
+        wsChip.textContent = "WS: connecting...";
+        const ws = new WebSocket(`${runtimeWsBaseUrl}/ws`);
+        state.ws = ws;
+
+        ws.onopen = () => {
+          wsChip.textContent = "WS: connected";
+        };
+
+        ws.onerror = () => {
+          wsChip.textContent = "WS: waiting...";
+        };
+
+        ws.onclose = () => {
+          if (state.ws === ws) {
+            state.ws = null;
+          }
+          wsChip.textContent = "WS: waiting...";
+          scheduleWebSocketReconnect();
+        };
+
+        ws.onmessage = async (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+
+            if (payload.type === "statusSnapshot") {
+              state.connectedBots = payload.data || [];
+              renderConnectedBots();
+              return;
+            }
+
+            if (payload.type === "log" && payload.data) {
+              state.logs.push(payload.data);
+              if (state.logs.length > 200) state.logs.shift();
+              renderLogs();
+              return;
+            }
+
+            if (
+              payload.type === "status" ||
+              payload.type === "connected" ||
+              payload.type === "disconnected"
+            ) {
+              await refreshAll({ silent: true });
+            }
+          } catch (err) {
+            console.error("WS parse error", err);
+          }
+        };
+      }
+
+      async function bootstrapRuntime() {
+        applyRuntimeSnapshot(readNativeRuntimeState());
+        if (!state.runtimeSnapshot?.message) {
+          setBanner("Menunggu runtime lokal aktif...");
+        }
+        const ready = await refreshAll({ silent: true });
+        if (!ready) {
+          scheduleBootstrap();
+          return;
+        }
+
+        setBanner("");
+        connectWebSocket();
+      }
+
+      menuButton.onclick = (event) => {
+        event.stopPropagation();
+        setMenuOpen(!menuPanel.classList.contains("open"));
+      };
+
+      document.addEventListener("click", (event) => {
+        if (!menuPanel.contains(event.target) && !menuButton.contains(event.target)) {
+          setMenuOpen(false);
+        }
+      });
+
+      menuRefreshBtn.onclick = async () => {
+        setMenuOpen(false);
+        const ok = await refreshAll({ silent: false });
+        if (ok && !state.ws) {
+          connectWebSocket();
+        }
+      };
+
+      menuCloseBtn.onclick = () => {
+        setMenuOpen(false);
+        setComposerVisible(false);
+      };
+
+      menuNewBtn.onclick = () => {
+        setMenuOpen(false);
+        resetComposer();
+        setComposerVisible(true);
+      };
+
+      disconnectAllBtn.onclick = async () => {
+        try {
+          const result = await request("/api/bots/disconnect-all", {
+            method: "POST",
+          });
+          setBanner(`Disconnect all dikirim untuk ${result.botIds.length} bot`);
+          await refreshAll({ silent: true });
+        } catch (err) {
+          setBanner(humanizeError(err), true);
+        }
+      };
+
+      resetSessionBtn.onclick = () => {
+        resetComposer();
+      };
+
+      connectForm.onsubmit = async (event) => {
+        event.preventDefault();
+
+        const payload = {
+          botId: botIdInput.value.trim(),
+          host: hostInput.value.trim(),
+          port: Number(portInput.value),
+          username: usernameInput.value.trim(),
+          version: versionInput.value.trim() || null,
+        };
+
+        try {
+          await request("/api/bot/connect", {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+          setBanner(`Connect request dikirim untuk ${payload.botId}`);
+          setComposerVisible(false);
+          resetComposer();
+          await refreshAll({ silent: true });
+          connectWebSocket();
+        } catch (err) {
+          setBanner(humanizeError(err), true);
+        }
+      };
+
+      renderAll();
+      resetComposer();
+      setComposerVisible(false);
+      bootstrapRuntime();
+    </script>
+  </body>
+</html>
