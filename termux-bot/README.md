@@ -77,7 +77,14 @@ another container or Android app:
 - `POST /api/bot/connect`
 - `POST /api/bot/disconnect`
 - `POST /api/bot/chat`
+- `POST /api/bot/move`
+- `POST /api/bot/auto-attack`
+- `POST /api/bot/ai`
+- `POST /api/bot/select-hotbar`
+- `POST /api/bot/equip`
+- `POST /api/bot/drop`
 - `GET /api/bot/status`
+- `GET /api/bot/inventory`
 - `GET /api/bots/status`
 - `GET /api/bots/saved`
 - `GET /api/bot/logs`
@@ -111,6 +118,68 @@ curl -X POST http://127.0.0.1:8080/api/bot/chat \
   -d '{"botId":"bot-1","message":"halo"}'
 ```
 
+Move `bot-1` forward for a short step:
+
+```sh
+curl -X POST http://127.0.0.1:8080/api/bot/move \
+  -H 'Content-Type: application/json' \
+  -d '{"botId":"bot-1","action":"forward","durationMs":650}'
+```
+
+Enable auto attack for `bot-1`:
+
+```sh
+curl -X POST http://127.0.0.1:8080/api/bot/auto-attack \
+  -H 'Content-Type: application/json' \
+  -d '{"botId":"bot-1","enabled":true}'
+```
+
+Tell `bot-1` to attack nearby zombies with lightweight AI:
+
+```sh
+curl -X POST http://127.0.0.1:8080/api/bot/ai \
+  -H 'Content-Type: application/json' \
+  -d '{"botId":"bot-1","action":"attack-zombies"}'
+```
+
+Enable lightweight routine AI for `bot-1`:
+
+```sh
+curl -X POST http://127.0.0.1:8080/api/bot/ai \
+  -H 'Content-Type: application/json' \
+  -d '{"botId":"bot-1","action":"routine"}'
+```
+
+Read bot inventory:
+
+```sh
+curl "http://127.0.0.1:8080/api/bot/inventory?botId=bot-1"
+```
+
+Select hotbar slot 1 for `bot-1`:
+
+```sh
+curl -X POST http://127.0.0.1:8080/api/bot/select-hotbar \
+  -H 'Content-Type: application/json' \
+  -d '{"botId":"bot-1","hotbarIndex":0}'
+```
+
+Equip the item in slot `36`:
+
+```sh
+curl -X POST http://127.0.0.1:8080/api/bot/equip \
+  -H 'Content-Type: application/json' \
+  -d '{"botId":"bot-1","slot":36}'
+```
+
+Drop the item in slot `36`:
+
+```sh
+curl -X POST http://127.0.0.1:8080/api/bot/drop \
+  -H 'Content-Type: application/json' \
+  -d '{"botId":"bot-1","slot":36}'
+```
+
 Read status for one bot:
 
 ```sh
@@ -140,4 +209,6 @@ curl -X POST http://127.0.0.1:8080/api/bots/disconnect-all
 - The bot uses `auth: "offline"` right now.
 - Saved bot profiles are stored in `.data/bot-sessions.json` inside this folder.
 - Saved bot profiles stay available even after disconnect, so you can reconnect them from the UI.
+- The built-in UI now includes chat, manual movement, lightweight AI actions, held-item visibility, hotbar selection, equip, and drop controls for connected bots.
+- The new `routine` AI mode stays lightweight: it is enabled automatically after connect, wanders, checks nearby open doors, and tries to sleep in the nearest bed at night if the bot can reach it.
 - Termux is fine for personal use and testing, but not ideal for 24/7 hosting.

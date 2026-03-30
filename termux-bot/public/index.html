@@ -371,6 +371,130 @@
         background: var(--danger);
       }
 
+      .control-grid {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .control-grid button {
+        border-radius: 16px;
+        padding: 11px 12px;
+        color: var(--text-invert);
+        background: rgba(114, 231, 255, 0.08);
+        font-weight: 700;
+        font-size: 12px;
+      }
+
+      .control-grid button.danger {
+        background: rgba(239, 109, 126, 0.16);
+        color: #ffd9df;
+      }
+
+      .inventory-card {
+        display: grid;
+        gap: 8px;
+        margin-top: 2px;
+      }
+
+      .inventory-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .inventory-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .inventory-summary {
+        display: grid;
+        gap: 8px;
+      }
+
+      .inventory-summary-row {
+        border-radius: 16px;
+        padding: 10px 12px;
+        background: rgba(114, 231, 255, 0.06);
+        border: 1px solid rgba(114, 231, 255, 0.08);
+      }
+
+      .inventory-summary-row strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+        color: var(--text-soft);
+      }
+
+      .hotbar-list {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .hotbar-chip {
+        border-radius: 14px;
+        padding: 10px 8px;
+        text-align: center;
+        background: rgba(114, 231, 255, 0.08);
+        color: var(--text-invert);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .hotbar-chip.active {
+        background: rgba(114, 231, 255, 0.18);
+        border: 1px solid rgba(114, 231, 255, 0.28);
+      }
+
+      .inventory-item {
+        display: grid;
+        gap: 10px;
+        border-radius: 16px;
+        padding: 10px 12px;
+        background: rgba(114, 231, 255, 0.06);
+        border: 1px solid rgba(114, 231, 255, 0.08);
+        font-size: 13px;
+      }
+
+      .inventory-item-main {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .inventory-item-title {
+        font-weight: 700;
+      }
+
+      .inventory-item-meta {
+        color: var(--text-soft);
+        font-size: 12px;
+      }
+
+      .inventory-item-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .inventory-item-actions button {
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: rgba(114, 231, 255, 0.08);
+        color: var(--text-invert);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .inventory-item-actions button.danger {
+        background: rgba(239, 109, 126, 0.14);
+        color: #ffd9df;
+      }
+
       .logs {
         display: grid;
         gap: 8px;
@@ -519,6 +643,7 @@
         savedBots: [],
         connectedBots: [],
         logs: [],
+        inventoryByBotId: {},
         runtimeSnapshot: null,
         ws: null,
         apiReady: false,
@@ -714,6 +839,22 @@
         }
       }
 
+      function getInventoryState(botId) {
+        const inventory = state.inventoryByBotId[botId];
+        if (!inventory || typeof inventory !== "object" || !Array.isArray(inventory.items)) {
+          return null;
+        }
+        return inventory;
+      }
+
+      function applyInventoryPayload(botId, payload) {
+        state.inventoryByBotId[botId] = {
+          selectedSlot: Number.isInteger(payload?.selectedSlot) ? payload.selectedSlot : null,
+          heldItem: payload?.heldItem ?? null,
+          items: Array.isArray(payload?.items) ? payload.items : [],
+        };
+      }
+
       function renderConnectedBots() {
         connectedCount.textContent = `${state.connectedBots.length} active`;
         disconnectAllBtn.hidden = state.connectedBots.length === 0;
@@ -735,14 +876,119 @@
               <div>${bot.host || "-"}:${bot.port || "-"}</div>
               <div>HP ${bot.health ?? "-"} | Food ${bot.food ?? "-"}</div>
               <div>Pos ${bot.position ? `${bot.position.x}, ${bot.position.y}, ${bot.position.z}` : "-"}</div>
+              <div>AI ${bot.aiMode || "idle"} | Auto Attack ${bot.autoAttackEnabled ? "on" : "off"}</div>
             </div>
             <div class="inline-actions">
               <input placeholder="message untuk ${bot.botId}" data-chat-input="${bot.botId}" />
               <button type="button" data-send-chat="${bot.botId}">Send</button>
               <button type="button" class="danger" data-disconnect="${bot.botId}">Disconnect</button>
             </div>
+            <div class="control-grid">
+              <button type="button" data-move="${bot.botId}" data-action="forward">Forward</button>
+              <button type="button" data-move="${bot.botId}" data-action="left">Left</button>
+              <button type="button" class="danger" data-move="${bot.botId}" data-action="stop">Stop</button>
+              <button type="button" data-move="${bot.botId}" data-action="right">Right</button>
+              <button type="button" data-move="${bot.botId}" data-action="back">Back</button>
+              <button type="button" data-auto-attack="${bot.botId}" data-enabled="${bot.autoAttackEnabled ? "off" : "on"}">
+                ${bot.autoAttackEnabled ? "Auto Attack Off" : "Auto Attack On"}
+              </button>
+              <button type="button" data-ai="${bot.botId}" data-ai-action="approach-player">Approach Player</button>
+              <button type="button" data-ai="${bot.botId}" data-ai-action="attack-zombies">Attack Zombies</button>
+              <button type="button" data-ai="${bot.botId}" data-ai-action="routine">Routine</button>
+              <button type="button" class="danger" data-ai="${bot.botId}" data-ai-action="stop-ai">Stop AI</button>
+            </div>
+            <div class="inventory-card">
+              <div class="inventory-head">
+                <strong>Inventory</strong>
+                <button type="button" class="tiny-action" data-refresh-inventory="${bot.botId}">Refresh</button>
+              </div>
+              <div class="inventory-list">
+                ${renderInventoryPanel(bot.botId)}
+              </div>
+            </div>
           </div>
         `).join("");
+      }
+
+      function renderInventory(botId) {
+        const items = Array.isArray(state.inventoryByBotId[botId]) ? state.inventoryByBotId[botId] : [];
+        if (items.length === 0) {
+          return '<div class="empty">No inventory loaded yet.</div>';
+        }
+
+        return items.map((item) => `
+          <div class="inventory-item">
+            <span>${item.displayName || item.name || "Unknown item"}</span>
+            <span>x${item.count ?? 0}${item.slot != null ? ` • slot ${item.slot}` : ""}</span>
+          </div>
+        `).join("");
+      }
+
+      function renderInventoryPanel(botId) {
+        const inventory = getInventoryState(botId);
+        if (!inventory) {
+          return '<div class="empty">No inventory loaded yet.</div>';
+        }
+
+        const heldLabel = inventory.heldItem
+          ? `${inventory.heldItem.displayName || inventory.heldItem.name || "Unknown item"} x${inventory.heldItem.count ?? 0}`
+          : "Empty hand";
+        const hotbar = Array.from({ length: 9 }, (_, index) => `
+          <button
+            type="button"
+            class="hotbar-chip${inventory.selectedSlot === index ? " active" : ""}"
+            data-select-hotbar="${botId}"
+            data-hotbar-index="${index}"
+          >
+            Slot ${index + 1}
+          </button>
+        `).join("");
+        const itemsMarkup = inventory.items.length === 0
+          ? '<div class="empty">Inventory loaded, but there are no items.</div>'
+          : inventory.items.map((item) => `
+            <div class="inventory-item">
+              <div class="inventory-item-main">
+                <div>
+                  <div class="inventory-item-title">${item.displayName || item.name || "Unknown item"}</div>
+                  <div class="inventory-item-meta">
+                    x${item.count ?? 0}
+                    ${item.slot != null ? ` • slot ${item.slot}` : ""}
+                    ${item.hotbarIndex != null ? ` • hotbar ${item.hotbarIndex + 1}` : ""}
+                    ${item.selected ? " • selected" : ""}
+                  </div>
+                </div>
+              </div>
+              <div class="inventory-item-actions">
+                ${item.hotbarIndex != null ? `
+                  <button
+                    type="button"
+                    data-select-hotbar="${botId}"
+                    data-hotbar-index="${item.hotbarIndex}"
+                  >
+                    Hold
+                  </button>
+                ` : ""}
+                ${item.slot != null ? `
+                  <button type="button" data-equip-item="${botId}" data-slot="${item.slot}">Equip</button>
+                  <button type="button" class="danger" data-drop-item="${botId}" data-slot="${item.slot}">Drop</button>
+                ` : ""}
+              </div>
+            </div>
+          `).join("");
+
+        return `
+          <div class="inventory-summary">
+            <div class="inventory-summary-row">
+              <strong>Held Item</strong>
+              <div>${heldLabel}</div>
+            </div>
+            <div class="inventory-summary-row">
+              <strong>Hotbar</strong>
+              <div class="hotbar-list">${hotbar}</div>
+            </div>
+          </div>
+          ${itemsMarkup}
+        `;
       }
 
       function renderSavedBots() {
@@ -850,6 +1096,136 @@
             }
           };
         });
+
+        document.querySelectorAll("[data-move]").forEach((button) => {
+          button.onclick = async () => {
+            const botId = button.dataset.move;
+            const action = button.dataset.action;
+            try {
+              await request("/api/bot/move", {
+                method: "POST",
+                body: JSON.stringify({
+                  botId,
+                  action,
+                  durationMs: action === "stop" ? 0 : 650,
+                }),
+              });
+              setBanner(action === "stop" ? `${botId} movement stopped` : `${botId} moving ${action}`);
+              await refreshAll({ silent: true });
+            } catch (err) {
+              setBanner(humanizeError(err), true);
+            }
+          };
+        });
+
+        document.querySelectorAll("[data-auto-attack]").forEach((button) => {
+          button.onclick = async () => {
+            const botId = button.dataset.autoAttack;
+            const enabled = button.dataset.enabled === "on";
+            try {
+              await request("/api/bot/auto-attack", {
+                method: "POST",
+                body: JSON.stringify({ botId, enabled }),
+              });
+              setBanner(`Auto Attack ${enabled ? "enabled" : "disabled"} for ${botId}`);
+              await refreshAll({ silent: true });
+            } catch (err) {
+              setBanner(humanizeError(err), true);
+            }
+          };
+        });
+
+        document.querySelectorAll("[data-ai]").forEach((button) => {
+          button.onclick = async () => {
+            const botId = button.dataset.ai;
+            const action = button.dataset.aiAction;
+            try {
+              await request("/api/bot/ai", {
+                method: "POST",
+                body: JSON.stringify({ botId, action }),
+              });
+              setBanner(`AI command '${action}' sent to ${botId}`);
+              await refreshAll({ silent: true });
+            } catch (err) {
+              setBanner(humanizeError(err), true);
+            }
+          };
+        });
+
+        document.querySelectorAll("[data-refresh-inventory]").forEach((button) => {
+          button.onclick = async () => {
+            const botId = button.dataset.refreshInventory;
+            try {
+              const payload = await request(`/api/bot/inventory?botId=${encodeURIComponent(botId)}`);
+              applyInventoryPayload(botId, payload);
+              renderConnectedBots();
+              bindDynamicActions();
+              setBanner(`Inventory refreshed for ${botId}`);
+            } catch (err) {
+              setBanner(humanizeError(err), true);
+            }
+          };
+        });
+
+        document.querySelectorAll("[data-select-hotbar]").forEach((button) => {
+          button.onclick = async () => {
+            const botId = button.dataset.selectHotbar;
+            const hotbarIndex = Number(button.dataset.hotbarIndex);
+            try {
+              const payload = await request("/api/bot/select-hotbar", {
+                method: "POST",
+                body: JSON.stringify({ botId, hotbarIndex }),
+              });
+              applyInventoryPayload(botId, payload);
+              renderConnectedBots();
+              bindDynamicActions();
+              setBanner(`Held slot ${hotbarIndex + 1} for ${botId}`);
+              await refreshAll({ silent: true });
+            } catch (err) {
+              setBanner(humanizeError(err), true);
+            }
+          };
+        });
+
+        document.querySelectorAll("[data-equip-item]").forEach((button) => {
+          button.onclick = async () => {
+            const botId = button.dataset.equipItem;
+            const slot = Number(button.dataset.slot);
+            try {
+              const payload = await request("/api/bot/equip", {
+                method: "POST",
+                body: JSON.stringify({ botId, slot }),
+              });
+              applyInventoryPayload(botId, payload);
+              renderConnectedBots();
+              bindDynamicActions();
+              setBanner(`Equipped item from slot ${slot} for ${botId}`);
+              await refreshAll({ silent: true });
+            } catch (err) {
+              setBanner(humanizeError(err), true);
+            }
+          };
+        });
+
+        document.querySelectorAll("[data-drop-item]").forEach((button) => {
+          button.onclick = async () => {
+            const botId = button.dataset.dropItem;
+            const slot = Number(button.dataset.slot);
+            try {
+              const payload = await request("/api/bot/drop", {
+                method: "POST",
+                body: JSON.stringify({ botId, slot }),
+              });
+              applyInventoryPayload(botId, payload);
+              renderConnectedBots();
+              bindDynamicActions();
+              setBanner(`Dropped item from slot ${slot} for ${botId}`);
+              await refreshAll({ silent: true });
+            } catch (err) {
+              setBanner(humanizeError(err), true);
+            }
+          };
+        });
       }
 
       function renderAll() {
@@ -873,6 +1249,12 @@
           state.connectedBots = statuses;
           state.savedBots = savedBots;
           state.logs = logs;
+          const activeIds = new Set(statuses.map((item) => item.botId));
+          Object.keys(state.inventoryByBotId).forEach((botId) => {
+            if (!activeIds.has(botId)) {
+              delete state.inventoryByBotId[botId];
+            }
+          });
           apiChip.textContent = `API: ${health.status}`;
           renderAll();
           return true;
